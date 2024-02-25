@@ -25,7 +25,6 @@ fetch(endpoint)
       gdp: item[1]
     }));
 
-
     const minDate = new Date(d3.min(gdp, item => item.date));
     const maxDate = new Date(d3.max(gdp, item => item.date));
 
@@ -39,12 +38,10 @@ fetch(endpoint)
       [svgPadding, svgWidth - svgPadding]
     );
 
-
     const yScale = d3.scaleLinear(
       [0, d3.max(gdp, item => item.gdp)],
       [svgHeight - svgPadding, svgPadding]
     );
-
 
     svg
       .append("g")
@@ -65,7 +62,7 @@ fetch(endpoint)
       .attr("x", (svgPadding - svgHeight) / 2)
       .attr("y", svgPadding + 20);
 
-    svg
+    const bars = svg
       .selectAll("rect.bar")
       .data(gdp)
       .join("rect")
@@ -76,36 +73,23 @@ fetch(endpoint)
       .attr("height", d => svgHeight - svgPadding - yScale(d.gdp))
       .attr("data-date", d => d.date)
       .attr("data-gdp", d => d.gdp)
-      .attr("fill", "royalblue")
-      .on("mouseover", (d) => {
+      .attr("fill", "royalblue");
+      
+    bars.on("mouseover", (_, d) => {
         const value = d.gdp.toLocaleString("en-IN", {
           style: "currency",
           currency: "USD"
         });
 
-        let [year, month] = d.date.split("-", 2);
-        let quarter;
-
-        switch (month) {
-          case "01":
-            quarter = "Q1";
-            break;
-          case "04":
-            quarter = "Q2";
-            break;
-          case "07":
-            quarter = "Q3";
-            break;
-          case "10":
-            quarter = "Q4";
-            break;
-        }
+        const [ year, month ] = d.date.split("-", 2);
+        const quarter = "Q" + Math.ceil(month / 3);
 
         tooltip
-          .attr("data-date", d.date)
           .classed("active", true)
+          .attr("data-date", d.date)
           .style("left", xScale(new Date(d.date)) + "px")
           .html(`${year} ${quarter}<br>${value} Billion`);
-      })
-      .on("mouseout", () => tooltip.classed("active", false));
+    });
+
+    bars.on("mouseout", () => tooltip.classed("active", false));
   });
