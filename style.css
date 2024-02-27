@@ -1,13 +1,13 @@
 body {
-  background-color: gray;
+  background-color: #808080;
 }
 
 .page-container {
   width: max-content;
   padding: 15px;
   margin: auto;
-  background-color: white;
-  box-shadow: 1px 1px 7px black;
+  background-color: #ffffff;
+  box-shadow: 1px 1px 8px 3px #0000006c;
 }
 
 header {
@@ -23,8 +23,12 @@ h1#title {
   font-weight: normal;
 }
 
+.bar {
+  fill: #249dff;
+}
+
 .bar:hover {
-  fill: skyblue;
+  fill: #87ceeb;
 }
 
 #tooltip {
@@ -35,13 +39,17 @@ h1#title {
   display: block;
   position: absolute;
   top: 480px;
-  transform: translateX(230px);
+  width: max-content;
   padding: 6px;
   border-radius: 3px;
   text-align: center;
   opacity: 0.8;
-  background-color: white;
-  box-shadow: 1px 1px 7px #00000088;
+  background-color: #ffffff;
+  box-shadow: 1px 1px 7px 1px #00000088;
+}
+
+#tooltip p {
+  all: unset;
 }
 
 .info {

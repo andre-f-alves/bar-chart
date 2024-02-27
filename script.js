@@ -1,5 +1,13 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
+function createAxis(svgElement, axis, id, x, y) {
+  svgElement
+    .append("g")
+    .attr("transform", `translate(${x}, ${y})`)
+    .attr("id", id)
+    .call(axis);
+};
+
 const endpoint = "https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json";
 
 const svgWidth = 900;
@@ -12,10 +20,7 @@ const svg = d3
   .attr("width", svgWidth)
   .attr("height", svgHeight);
 
-const tooltip = d3
-  .select(".svg-container")
-  .append("div")
-  .attr("id", "tooltip");
+const tooltip = d3.select("#tooltip");
 
 fetch(endpoint)
   .then(res => res.json())
@@ -27,11 +32,9 @@ fetch(endpoint)
 
     const minDate = new Date(d3.min(gdp, item => item.date));
     const maxDate = new Date(d3.max(gdp, item => item.date));
+    maxDate.setMonth(maxDate.getMonth() + 2);
 
-    maxDate.setMonth(maxDate.getMonth() + 3);
-
-    const dataAmount = d3.count(gdp, d => d.gdp);
-    const barWidth = (svgWidth - svgPadding * 2) / dataAmount;
+    const barWidth = (svgWidth - svgPadding * 2) / gdp.length;
 
     const xScale = d3.scaleTime(
       [minDate, maxDate],
@@ -42,18 +45,10 @@ fetch(endpoint)
       [0, d3.max(gdp, item => item.gdp)],
       [svgHeight - svgPadding, svgPadding]
     );
+    
+    createAxis(svg, d3.axisBottom(xScale), "x-axis", 0, svgHeight - svgPadding)
 
-    svg
-      .append("g")
-      .attr("transform", `translate(0, ${svgHeight - svgPadding})`)
-      .attr("id", "x-axis")
-      .call(d3.axisBottom(xScale));
-
-    svg
-      .append("g")
-      .attr("transform", `translate(${svgPadding}, 0)`)
-      .attr("id", "y-axis")
-      .call(d3.axisLeft(yScale));
+    createAxis(svg, d3.axisLeft(yScale), "y-axis", svgPadding, 0)
 
     svg
       .append("text")
@@ -73,22 +68,25 @@ fetch(endpoint)
       .attr("height", d => svgHeight - svgPadding - yScale(d.gdp))
       .attr("data-date", d => d.date)
       .attr("data-gdp", d => d.gdp)
-      .attr("fill", "royalblue");
       
-    bars.on("mouseover", (_, d) => {
-        const value = d.gdp.toLocaleString("en-IN", {
-          style: "currency",
-          currency: "USD"
-        });
+    bars.on("mouseover", (event, d) => {
+      const x = d3.pointer(event, svg)[0];
+      const position = x >= innerWidth / 2 ? "-110%" : "10%";
 
-        const [ year, month ] = d.date.split("-", 2);
-        const quarter = "Q" + Math.ceil(month / 3);
+      const value = d.gdp.toLocaleString("en-IN", {
+        style: "currency",
+        currency: "USD"
+      });
 
-        tooltip
-          .classed("active", true)
-          .attr("data-date", d.date)
-          .style("left", xScale(new Date(d.date)) + "px")
-          .html(`${year} ${quarter}<br>${value} Billion`);
+      const [ year, month ] = d.date.split("-", 2);
+      const quarter = "Q" + Math.ceil(month / 3);
+
+      tooltip
+        .classed("active", true)
+        .attr("data-date", d.date)
+        .style("left", x + "px")
+        .style("transform", `translateX(${position})`)
+        .html(`<p>${year} ${quarter}<br>${value} Billion</p>`);
     });
 
     bars.on("mouseout", () => tooltip.classed("active", false));
